@@ -3,10 +3,12 @@
 A milestone-based project to reliably send SMS messages with Twilio, starting from a simple containerized script and growing into API and device integrations.
 
 ## Overview / Roadmap
-- Milestone 1 (now): Container sends an SMS via Twilio API
-- Milestone 2: Add an HTTP API (FastAPI) to trigger SMS on demand
-- Milestone 3: Send SMS from a Jupyter Notebook
-- Milestone 4: Integrate with a device (Raspberry Pi GPIO or Ring trigger)
+- Milestone 1 (done): Container sends an SMS via Twilio API
+- Milestone 2 (done): HTTP API (FastAPI) to trigger SMS on demand
+- Milestone 3 (done): Send SMS from a Jupyter Notebook
+- Milestone 4 (current): Mic keyword listener (OpenAI Whisper) triggers SMS
+- Milestone 5 (next): Event bridge + simple rules (device/webhook → event → SMS)
+- Milestone 6 (final): Computer vision + semantic scene recognition → SMS
 
 ---
 
@@ -61,7 +63,7 @@ If successful, you'll see the message SID in the output.
 
 ---
 
-## Milestone 2 — HTTP API Service (Plan)
+## Milestone 2 — HTTP API Service (Done)
 Expose an endpoint to send SMS via HTTP, enabling webhooks and device triggers.
 
 - Stack: FastAPI + Uvicorn in the same Docker/Compose setup.
@@ -70,20 +72,6 @@ Expose an endpoint to send SMS via HTTP, enabling webhooks and device triggers.
 - Compose: add a new service `api` exposing port 8000.
 
 Example request (planned):
-```bash
-curl -X POST http://localhost:8000/send \
-  -H "Authorization: Bearer $API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"to":"+15551234567","message":"Hello from API"}'
-```
-
-> When you’re ready, I’ll scaffold `src/api.py`, dependency updates, and Compose changes.
-
----
-
-## Milestone 3 — Jupyter Notebook Sender (Plan)
-Send SMS directly from a notebook for experimentation and demos.
-
 Options:
 - Add a `jupyter` service in Compose using the same image and mount the repo.
 - Or run a local notebook with `pip install twilio` and load `.env`.
@@ -102,21 +90,46 @@ message = client.messages.create(
 message.sid
 ```
 
-> I can add a `notebooks/` folder and a `docker-compose` Jupyter service (with token disabled for local).
+### Run via Docker Compose
+```bash
+docker compose build
+docker compose up -d jupyter
+# Open http://localhost:8888 and run your notebook or Python cells
+```
+
+> Tip: From containers, target the API as `http://api:8000`. From host, use `http://localhost:8000`.
 
 ---
 
-## Milestone 4 — Device Integrations (Plan)
-Connect physical or cloud devices to trigger SMS.
+## Milestone 4 — Mic Keyword Listener (Current)
+Use the desktop microphone and OpenAI Whisper to detect keywords (e.g., "chicken nugget(s)") and send an SMS via the existing API.
 
-- Raspberry Pi:
-  - Option A: call the HTTP API (Milestone 2) from Pi scripts.
-  - Option B: run this container on the Pi and execute `docker run --env-file .env twilio-sms:latest` on events.
-- Ring Doorbell:
-  - If available, configure a webhook or use an integration to POST to the API service.
-  - Alternatively, run a small polling/subscribe script that triggers the API when events occur.
+### Setup
+1. Add to `.env`:
+   - `OPENAI_API_KEY=...`
+   - Optional tuning: `KEYWORDS=chicken nugget,chicken nuggets`, `BUFFER_SECONDS=4`, `MIC_SAMPLE_RATE=16000`, `DETECTION_COOLDOWN_SECONDS=15`, `SILENCE_THRESHOLD=0.001`
+2. Ensure the API is running:
+   ```bash
+   docker compose up -d api
+   ```
 
-> I’ll add example scripts and a small guide per device when you’re ready.
+### Run (host, recommended for mic access)
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python src/keyword_listener.py
+```
+
+Speak the keywords; you'll receive an SMS upon detection. Buffers are not saved (in-memory only). This is a stepping stone; we can later containerize on WSL/Linux with proper audio device mapping.
+
+## Milestone 5 — Event Bridge + Rules (Planned)
+Add `POST /event` and a minimal rules engine to map events to messages (e.g., device=ring && type=motion → SMS). Provide examples for Raspberry Pi and webhooks (Home Assistant/IFTTT/ngrok/cloudflared).
+
+## Milestone 6 — Computer Vision + Semantics (Planned)
+Detect objects and scenes from a camera/stream and trigger SMS. Options:
+- Local: YOLO/RT-DETR + CLIP/embeddings in a `cv` service posting events.
+- Cloud: call a vision API on frames. Wire to `/event` → rules → SMS.
 
 ---
 

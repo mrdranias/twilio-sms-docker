@@ -20,3 +20,22 @@ services:
     command: ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - "8000:8000"
+
+  jupyter:
+    build: .
+    image: twilio-sms:latest
+    env_file:
+      - .env
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: [
+      "jupyter", "lab",
+      "--ip", "0.0.0.0",
+      "--port", "8888",
+      "--no-browser",
+      "--NotebookApp.token=",
+      "--NotebookApp.password="
+    ]
+    ports:
+      - "8888:8888"
