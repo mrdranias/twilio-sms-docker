@@ -1,0 +1,3 @@
+twilio>=9,<10
+# Optional dev/debug tools (uncomment if needed)
+# python-dotenv>=1.0,<2

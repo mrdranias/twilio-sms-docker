@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  sms:
+    build: .
+    image: twilio-sms:latest
+    env_file:
+      - .env
+    # Uncomment to override the default message at runtime
+    # environment:
+    #   MESSAGE: "Hello from Compose!"
+    # command: ["python", "-m", "src.send_sms"]
+    # No ports needed; this is a one-shot job
