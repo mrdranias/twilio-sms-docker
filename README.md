@@ -128,3 +128,12 @@ Connect physical or cloud devices to trigger SMS.
 ## Next Actions
 - Milestone 1: Fill `.env`, build, and run to send a test SMS.
 - Tell me when to proceed and I’ll scaffold Milestone 2 (FastAPI service) next.
+
+
+
+## GENERATE SSH KEY
+ssh-keygen -t ed25519 -C "your_email@example.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+copy output; go to github.com; settings; SSH and GPG keys; New SSH key; paste; Add SSH key

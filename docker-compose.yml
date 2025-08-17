@@ -1,12 +1,22 @@
-version: "3.9"
 services:
   sms:
     build: .
     image: twilio-sms:latest
     env_file:
       - .env
-    # Uncomment to override the default message at runtime
+    # Uncomment for verbose troubleshooting
     # environment:
-    #   MESSAGE: "Hello from Compose!"
+    #   DEBUG: "1"
     # command: ["python", "-m", "src.send_sms"]
     # No ports needed; this is a one-shot job
+
+  api:
+    build: .
+    image: twilio-sms:latest
+    env_file:
+      - .env
+    environment:
+      - API_TOKEN=${API_TOKEN}
+    command: ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"

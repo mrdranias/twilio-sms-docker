@@ -1,3 +1,6 @@
 twilio>=9,<10
+uvicorn>=0.24,<0.25
+fastapi>=0.100,<0.101
+
 # Optional dev/debug tools (uncomment if needed)
-# python-dotenv>=1.0,<2
+python-dotenv>=1.0,<2
